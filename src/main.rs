@@ -1,3 +1,7 @@
+mod config;
+
+use crate::config::read_config;
+
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 
@@ -5,6 +9,12 @@ use std::process::Stdio;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let config = read_config().await?;
+    println!(
+        "Looking for Minecraft version {:?}",
+        config.minecraft.version
+    );
+
     let mut installer = Command::new("java");
 
     installer
