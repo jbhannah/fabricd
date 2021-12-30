@@ -1,12 +1,12 @@
 mod config;
 mod error;
+mod server;
 
 use crate::config::{read_config, write_lock, Config};
 use crate::error::Error;
+use crate::server::version::read_version;
 
-use async_zip::read::seek::ZipFileReader;
-use tokio::fs::File;
-use tokio::io::{AsyncBufReadExt, AsyncReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 
 use std::process::Stdio;
@@ -49,21 +49,7 @@ async fn main() -> Result<(), Error> {
     }
 
     let mut lock = Config::new();
-
-    let mut server_jar = File::open("server.jar").await?;
-    let mut zip = ZipFileReader::new(&mut server_jar).await?;
-
-    lock.minecraft.version = if let Some((index, _)) = zip.entry("version.json") {
-        let mut version_file = zip.entry_reader(index).await?;
-        let mut version_str = String::new();
-
-        version_file.read_to_string(&mut version_str).await?;
-        let version_data = json::parse(&version_str)?;
-
-        Some(version_data["name"].to_string())
-    } else {
-        config.minecraft.version
-    };
+    lock.minecraft.version = read_version().await?.or(config.minecraft.version);
 
     write_lock(&lock).await?;
 

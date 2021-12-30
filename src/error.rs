@@ -2,9 +2,8 @@
 pub enum Error {
     ConfigRead(ConfigReadError),
     Io(std::io::Error),
-    Json(json::Error),
     LockWrite(LockWriteError),
-    Zip(async_zip::error::ZipError),
+    Version(crate::server::error::VersionError),
 }
 
 impl std::error::Error for Error {}
@@ -14,9 +13,8 @@ impl std::fmt::Display for Error {
         match self {
             Self::ConfigRead(err) => err.fmt(f),
             Self::Io(err) => err.fmt(f),
-            Self::Json(err) => err.fmt(f),
             Self::LockWrite(err) => err.fmt(f),
-            Self::Zip(err) => write!(f, "{}", err.description()),
+            Self::Version(err) => err.fmt(f),
         }
     }
 }
@@ -33,21 +31,15 @@ impl From<LockWriteError> for Error {
     }
 }
 
-impl From<async_zip::error::ZipError> for Error {
-    fn from(err: async_zip::error::ZipError) -> Self {
-        Self::Zip(err)
+impl From<crate::server::error::VersionError> for Error {
+    fn from(err: crate::server::error::VersionError) -> Self {
+        Self::Version(err)
     }
 }
 
 impl From<std::io::Error> for Error {
     fn from(err: std::io::Error) -> Self {
         Self::Io(err)
-    }
-}
-
-impl From<json::Error> for Error {
-    fn from(err: json::Error) -> Self {
-        Self::Json(err)
     }
 }
 
