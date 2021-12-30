@@ -2,14 +2,17 @@ mod config;
 mod error;
 
 use crate::config::{read_config, write_lock, Config};
+use crate::error::Error;
 
-use tokio::io::{AsyncBufReadExt, BufReader};
+use async_zip::read::seek::ZipFileReader;
+use tokio::fs::File;
+use tokio::io::{AsyncBufReadExt, AsyncReadExt, BufReader};
 use tokio::process::Command;
 
 use std::process::Stdio;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Error> {
     let config = read_config().await?;
     println!(
         "Looking for Minecraft version {:?}",
@@ -46,7 +49,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let mut lock = Config::new();
-    lock.minecraft.version = Some("1.18.2".to_string());
+
+    let mut server_jar = File::open("server.jar").await?;
+    let mut zip = ZipFileReader::new(&mut server_jar).await?;
+
+    lock.minecraft.version = if let Some((index, _)) = zip.entry("version.json") {
+        let mut version_file = zip.entry_reader(index).await?;
+        let mut version_str = String::new();
+
+        version_file.read_to_string(&mut version_str).await?;
+        let version_data = json::parse(&version_str)?;
+
+        Some(version_data["name"].to_string())
+    } else {
+        config.minecraft.version
+    };
+
     write_lock(&lock).await?;
 
     Ok(())
