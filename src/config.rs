@@ -10,22 +10,17 @@ pub struct Config {
     pub minecraft: Minecraft,
 }
 
-impl Config {
-    pub fn new() -> Config {
-        Default::default()
-    }
-}
-
 #[derive(Default, Deserialize, Serialize)]
 pub struct Minecraft {
     pub version: Option<String>,
 }
 
 pub async fn read_config() -> Result<Config, ConfigReadError> {
-    let contents = fs::read_to_string("fabricd.toml").await?;
-    let config: Config = toml::from_str(&contents)?;
+    read_toml("fabricd.toml").await
+}
 
-    Ok(config)
+pub async fn read_lock() -> Result<Config, ConfigReadError> {
+    read_toml("fabricd.lock").await
 }
 
 pub async fn write_lock(lock: &Config) -> Result<(), LockWriteError> {
@@ -33,4 +28,11 @@ pub async fn write_lock(lock: &Config) -> Result<(), LockWriteError> {
     fs::write("fabricd.lock", &serialized).await?;
 
     Ok(())
+}
+
+async fn read_toml(filename: &str) -> Result<Config, ConfigReadError> {
+    let contents = fs::read_to_string(filename).await?;
+    let config: Config = toml::from_str(&contents)?;
+
+    Ok(config)
 }

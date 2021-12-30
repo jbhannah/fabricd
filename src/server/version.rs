@@ -15,8 +15,8 @@ pub async fn read_version() -> Result<Option<String>, VersionError> {
         version_file.read_to_string(&mut version_string).await?;
         let version_data = json::parse(&version_string)?;
 
-        // Ok(version_data["name"].as_str())
         if let Some(version) = version_data["name"].as_str() {
+            println!("Read version {} from server.jar", version);
             Ok(Some(version.to_string()))
         } else {
             Ok(None)
