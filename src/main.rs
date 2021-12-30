@@ -26,6 +26,11 @@ async fn main() -> Result<(), Error> {
         .arg("fabric-installer-0.10.2.jar")
         .arg("server")
         .arg("-downloadMinecraft");
+
+    if let Some(ref version) = config.minecraft.version {
+        installer.arg("-mcversion").arg(version);
+    }
+
     installer.stdout(Stdio::piped());
 
     let mut child = installer.spawn().expect("failed to spawn command");
