@@ -1,6 +1,7 @@
 mod config;
+mod error;
 
-use crate::config::read_config;
+use crate::config::{read_config, write_lock, Config};
 
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
@@ -43,6 +44,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     while let Some(line) = reader.next_line().await? {
         println!("{}", line);
     }
+
+    let mut lock = Config::new();
+    lock.minecraft.version = Some("1.18.2".to_string());
+    write_lock(&lock).await?;
 
     Ok(())
 }
