@@ -7,7 +7,9 @@ edition = "2021"
 
 [dependencies]
 async_zip = "0"
+futures = "0"
 json = "0"
+reqwest = { version = "0.11", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "process", "io-util", "fs"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "process", "io-util", "fs", "net"] }
 toml = "0.5"

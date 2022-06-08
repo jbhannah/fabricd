@@ -2,7 +2,9 @@
 pub enum Error {
     ConfigRead(ConfigReadError),
     Io(std::io::Error),
+    Join(tokio::task::JoinError),
     LockWrite(LockWriteError),
+    Reqwest(reqwest::Error),
     Version(crate::server::error::VersionError),
 }
 
@@ -13,7 +15,9 @@ impl std::fmt::Display for Error {
         match self {
             Self::ConfigRead(err) => err.fmt(f),
             Self::Io(err) => err.fmt(f),
+            Self::Join(err) => err.fmt(f),
             Self::LockWrite(err) => err.fmt(f),
+            Self::Reqwest(err) => err.fmt(f),
             Self::Version(err) => err.fmt(f),
         }
     }
@@ -40,6 +44,18 @@ impl From<crate::server::error::VersionError> for Error {
 impl From<std::io::Error> for Error {
     fn from(err: std::io::Error) -> Self {
         Self::Io(err)
+    }
+}
+
+impl From<reqwest::Error> for Error {
+    fn from(err: reqwest::Error) -> Self {
+        Self::Reqwest(err)
+    }
+}
+
+impl From<tokio::task::JoinError> for Error {
+    fn from(err: tokio::task::JoinError) -> Self {
+        Self::Join(err)
     }
 }
 

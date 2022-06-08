@@ -1,11 +1,14 @@
 mod config;
 mod error;
+mod fabric;
 mod server;
 
 use crate::config::{read_config, read_lock, write_lock};
 use crate::error::Error;
+use crate::fabric::{installer, loader};
 use crate::server::version::read_version;
 
+use futures::try_join;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 
@@ -16,6 +19,22 @@ use std::process::Stdio;
 async fn main() -> Result<(), Error> {
     let config = read_config().await?;
     let mut lock = read_lock().await?;
+
+    let get_installer = tokio::spawn(async move {
+        let installer_version = installer::latest_version()
+            .await
+            .expect("could not get installer version");
+        println!("Latest Fabric installer: {:?}", installer_version);
+    });
+
+    let get_loader = tokio::spawn(async move {
+        let loader_version = loader::latest_version()
+            .await
+            .expect("could not get loader version");
+        println!("Latest Fabric loader: {:?}", loader_version);
+    });
+
+    try_join!(get_installer, get_loader)?;
 
     let download_launcher =
         !(Path::new("server.jar").exists() && Path::new("fabric-server-launch.jar").exists());

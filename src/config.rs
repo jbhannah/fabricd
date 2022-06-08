@@ -7,7 +7,21 @@ use std::default::Default;
 #[derive(Default, Deserialize, Serialize)]
 pub struct Config {
     #[serde(default)]
+    pub fabric: Fabric,
+    #[serde(default)]
     pub minecraft: Minecraft,
+}
+
+#[derive(Default, Deserialize, Serialize)]
+pub struct Fabric {
+    pub version: Option<String>,
+    #[serde(default)]
+    pub installer: Installer,
+}
+
+#[derive(Default, Deserialize, Serialize)]
+pub struct Installer {
+    pub version: Option<String>,
 }
 
 #[derive(Default, Deserialize, Serialize)]
