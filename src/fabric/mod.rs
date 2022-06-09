@@ -29,7 +29,7 @@ impl ToString for Component {
     }
 }
 
-async fn get_latest_version(component: Component) -> reqwest::Result<Option<String>> {
+async fn get_latest_version(component: Component) -> reqwest::Result<String> {
     let resp = reqwest::get(format!(
         "https://meta.fabricmc.net/v2/versions/{}",
         component.to_string()
@@ -38,9 +38,9 @@ async fn get_latest_version(component: Component) -> reqwest::Result<Option<Stri
     .json::<Vec<Version>>()
     .await?;
 
-    if let Some(version) = resp.iter().find(|version| version.stable) {
-        Ok(Some(version.version.to_string()))
-    } else {
-        Ok(None)
-    }
+    let version = resp
+        .iter()
+        .find(|version| version.stable)
+        .expect("no stable version found");
+    Ok(version.version.to_string())
 }

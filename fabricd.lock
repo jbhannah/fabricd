@@ -1,4 +1,5 @@
 [fabric.installer]
+version = "0.11.0"
 
 [minecraft]
 version = "1.19"

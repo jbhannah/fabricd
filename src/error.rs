@@ -1,3 +1,5 @@
+use crate::util::DownloadError;
+
 #[derive(Debug)]
 pub enum Error {
     ConfigRead(ConfigReadError),
@@ -56,6 +58,15 @@ impl From<reqwest::Error> for Error {
 impl From<tokio::task::JoinError> for Error {
     fn from(err: tokio::task::JoinError) -> Self {
         Self::Join(err)
+    }
+}
+
+impl From<DownloadError> for Error {
+    fn from(err: DownloadError) -> Self {
+        match err {
+            DownloadError::Io(err) => Self::Io(err),
+            DownloadError::Reqwest(err) => Self::Reqwest(err),
+        }
     }
 }
 
